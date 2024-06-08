@@ -124,5 +124,14 @@ LIMIT 5;
 -- LEVEL 5
 
 -- Question 13: Top 3 users with longest sessions per month (consider the month of start_time)
+SELECT DISTINCT
+    user_id,
+    strftime('%Y-%m', start_time) AS month,
+    SUM((JULIANDAY(end_time) - JULIANDAY(start_time)) * 24 * 60) AS longest_session_month_min
+FROM sessions
+GROUP BY user_id, month
+ORDER BY longest_session_month_min DESC
+LIMIT 3;
+
     
 -- Question 14. Average time between sessions for each charger for each month (consider the month of start_time)
