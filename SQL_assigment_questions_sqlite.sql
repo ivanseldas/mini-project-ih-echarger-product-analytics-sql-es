@@ -28,8 +28,11 @@ HAVING users_per_charger > 1;
 
 -- Question 5: Average session time per charger
 SELECT 
-    (JULIANDAY(end_time) - JULIANDAY(start_time)) * 24 AS total_hours
-FROM sessions;
+    charger_id,
+    AVG(JULIANDAY(end_time) - JULIANDAY(start_time)) * 24 AS avg_session_hours
+FROM sessions
+GROUP BY charger_id
+ORDER BY avg_session_hours DESC;
     
 -- LEVEL 3
 
@@ -49,19 +52,67 @@ WITH ChargerDayUser AS
 SELECT DISTINCT name, surname FROM ChargerDayUser;
 
 -- Question 7: Top 3 chargers with longer sessions
+SELECT DISTINCT
+    charger_id,
+    FIRST_VALUE(JULIANDAY(end_time) - JULIANDAY(start_time)) OVER (PARTITION BY charger_id) AS longest_session_hours
+FROM sessions
+ORDER BY longest_session_hours DESC
+LIMIT 3;
 
 -- Question 8: Average number of users per charger (per charger in general, not per charger_id specifically)
-
+WITH ChargerUser AS (
+    SELECT user_id, COUNT(charger_id) AS n_charger_user
+    FROM sessions
+    GROUP BY user_id
+)
+SELECT
+    AVG(n_charger_user) AS avg_charger_per_user
+    FROM ChargerUser;
+  
 -- Question 9: Top 3 users with more chargers being used
-
-
+SELECT 
+    user_id, 
+    COUNT(charger_id) AS ChargerUsed 
+FROM sessions
+GROUP BY user_id
+ORDER BY ChargerUsed DESC
+LIMIT 3;
 
 
 -- LEVEL 4
 
 -- Question 10: Number of users that have used only AC chargers, DC chargers or both
+WITH AC AS (
+        SELECT DISTINCT
+            COUNT(DISTINCT s.user_id) AS AC_users 
+        FROM sessions s
+        INNER JOIN chargers c ON s.charger_id = c.id
+        WHERE c.type = 'AC'
+    ),
+    DC AS (
+        SELECT DISTINCT
+            COUNT(DISTINCT s.user_id) AS DC_users
+        FROM sessions s
+        INNER JOIN chargers c ON s.charger_id = c.id
+        WHERE c.type = 'DC'
+    ),
+    BOTH AS (
+        SELECT DISTINCT
+            s.user_id
+            FROM sessions s
+            INNER JOIN chargers c ON s.charger_id = c.id
+            GROUP BY s.user_id
+            HAVING COUNT(DISTINCT c.type) = 2
+    )
+SELECT
+    AC_users,
+    DC_users,
+    COUNT(user_id) AS BOTH_users
+FROM AC, DC, BOTH;
 
 -- Question 11: Monthly average number of users per charger
+
+
 
 -- Question 12: Top 3 users per charger (for each charger, number of sessions)
 
