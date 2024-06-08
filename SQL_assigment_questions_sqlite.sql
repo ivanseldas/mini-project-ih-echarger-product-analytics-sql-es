@@ -80,14 +80,6 @@ LIMIT 3;
 -- LEVEL 4
 
 -- Question 10: Number of users that have used only AC chargers, DC chargers or both
-SELECT
-    s.user_id,
-    SUM(CASE WHEN c.type = 'AC' THEN 1 ELSE 0 END) AS AC_sum,
-    SUM(CASE WHEN c.type = 'DC' THEN 1 ELSE 0 END) AS DC_sum
-FROM sessions s
-INNER JOIN chargers c ON s.charger_id = c.id
-GROUP BY s.user_id;
-
 WITH UserCharger AS (
     SELECT
         s.user_id,
